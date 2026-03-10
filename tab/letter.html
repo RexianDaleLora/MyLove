@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Letters to You 💌</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Nunito:wght@300;400;500&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--sage:#7aab8a;--mint:#a8d5b5;--pale:#dff0e5;--foam:#f0faf4;--deep:#3d6b52;--text:#2e4a38;--soft:#6b9178;--white:#ffffff}
+    html{scroll-behavior:smooth}
+    body{font-family:'Nunito',sans-serif;background:var(--foam);color:var(--text);min-height:100vh;overflow-x:hidden}
+    .bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+    .petal{position:absolute;border-radius:50% 0 50% 0;opacity:.14;animation:floatDown linear infinite}
+    @keyframes floatDown{0%{transform:translateY(-60px) rotate(0deg);opacity:0}10%{opacity:.14}90%{opacity:.08}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:center;gap:2rem;padding:1rem 2rem;background:rgba(240,250,244,.85);backdrop-filter:blur(14px);border-bottom:1px solid rgba(122,171,138,.2)}
+    nav a{text-decoration:none;font-weight:500;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--deep);transition:color .3s}
+    nav a:hover,nav a.active{color:var(--sage)}
+    nav .nav-heart{color:var(--sage);font-size:1.1rem}
+    .hero{position:relative;z-index:1;padding:9rem 2rem 3rem;text-align:center}
+    .page-tag{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);margin-bottom:.8rem;animation:fadeUp .7s ease both}
+    .page-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,6vw,4.5rem);font-weight:300;color:var(--deep);animation:fadeUp .8s .1s ease both;margin-bottom:.5rem}
+    .page-title em{font-style:italic;color:var(--sage)}
+    .page-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;color:var(--soft);animation:fadeUp .9s .2s ease both}
+    .filter-bar{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;padding:0 2rem .5rem;animation:fadeUp .9s .25s ease both}
+    .filter-btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.35rem;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:500;letter-spacing:.06em;cursor:pointer;border:1.5px solid rgba(122,171,138,.35);background:rgba(255,255,255,.65);color:var(--deep);transition:background .22s,border-color .22s,transform .2s,box-shadow .2s;backdrop-filter:blur(6px)}
+    .filter-btn:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(61,107,82,.12)}
+    .filter-btn.active{background:linear-gradient(135deg,var(--sage),var(--deep));border-color:transparent;color:#fff;box-shadow:0 4px 18px rgba(61,107,82,.28)}
+    .envelope-grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:2.8rem;justify-content:center;padding:3rem 2rem 7rem;max-width:1100px;margin:0 auto}
+    .env-card{display:flex;flex-direction:column;align-items:center;cursor:pointer;animation:fadeUp .8s ease both;transition:opacity .3s,transform .3s}
+    .env-card.hidden{display:none}
+    .env-card:nth-child(1){animation-delay:.1s}.env-card:nth-child(2){animation-delay:.2s}.env-card:nth-child(3){animation-delay:.3s}.env-card:nth-child(4){animation-delay:.4s}
+    .envelope{width:280px;height:185px;position:relative;transition:transform .3s,box-shadow .3s}
+    .env-card:hover .envelope{transform:translateY(-8px) scale(1.02)}
+    .env-body{position:absolute;inset:0;border-radius:4px 4px 10px 10px;border:1.5px solid rgba(122,171,138,.35);box-shadow:0 8px 30px rgba(61,107,82,.13)}
+    .env-card:nth-child(1) .env-body{background:linear-gradient(150deg,#fff 0%,#e6f5ec 100%)}
+    .env-card:nth-child(2) .env-body{background:linear-gradient(150deg,#fff 0%,#eaf7f0 100%)}
+    .env-card:nth-child(3) .env-body{background:linear-gradient(150deg,#fff 0%,#f0f9ec 100%)}
+    .env-card:nth-child(4) .env-body{background:linear-gradient(150deg,#fff 0%,#e8f4ed 100%)}
+    .env-flap{position:absolute;top:0;left:-1px;right:-1px;height:52%;clip-path:polygon(0 0,100% 0,50% 100%);border-radius:4px 4px 0 0;transition:transform .5s cubic-bezier(.4,0,.2,1);transform-origin:top center;z-index:2}
+    .env-card:nth-child(1) .env-flap{background:linear-gradient(150deg,#bde8ce,#9dd4b4)}
+    .env-card:nth-child(2) .env-flap{background:linear-gradient(150deg,#b4e4c6,#8ecba8)}
+    .env-card:nth-child(3) .env-flap{background:linear-gradient(150deg,#c4ebd4,#a4d8bc)}
+    .env-card:nth-child(4) .env-flap{background:linear-gradient(150deg,#b8e8c8,#96d0b0)}
+    .env-card:hover .env-flap{transform:rotateX(-32deg)}
+    .env-seal{position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;background:linear-gradient(135deg,var(--sage),var(--deep));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 2px 10px rgba(61,107,82,.22);z-index:3;transition:transform .3s}
+    .env-card:hover .env-seal{transform:translate(-50%,-50%) scale(1.12)}
+    .env-lines{position:absolute;bottom:20%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:5px;width:55%}
+    .env-line{height:2px;background:rgba(122,171,138,.2);border-radius:2px}
+    .env-date-label{position:absolute;bottom:8px;right:12px;font-family:'Dancing Script',cursive;font-size:.8rem;color:rgba(61,107,82,.5);z-index:4}
+    .env-title{margin-top:1.1rem;font-family:'Cormorant Garamond',serif;font-size:1.08rem;font-weight:300;color:var(--deep);text-align:center}
+    .env-subtitle{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-top:.2rem;text-align:center}
+    .env-pages-badge{margin-top:.45rem;background:rgba(168,213,181,.28);border:1px solid rgba(122,171,138,.28);border-radius:20px;padding:.15rem .75rem;font-size:.68rem;letter-spacing:.08em;color:var(--deep)}
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(15,38,24,.5);backdrop-filter:blur(18px) saturate(.75);-webkit-backdrop-filter:blur(18px) saturate(.75);align-items:center;justify-content:center;padding:1.5rem}
+    .modal-overlay.active{display:flex;animation:overlayIn .3s ease both}
+    @keyframes overlayIn{from{opacity:0}to{opacity:1}}
+    .modal-box{background:#fff;border:1px solid rgba(122,171,138,.25);border-radius:20px;width:100%;max-width:700px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 28px 80px rgba(10,30,18,.32);animation:modalUp .4s cubic-bezier(.2,.8,.3,1) both;overflow:hidden}
+    @keyframes modalUp{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .modal-topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem .85rem;border-bottom:1px solid rgba(122,171,138,.15);background:rgba(240,250,244,.6);flex-shrink:0;gap:.6rem;flex-wrap:wrap}
+    .modal-letter-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:300;color:var(--deep);flex:1;min-width:120px}
+    .modal-letter-title em{font-style:italic;color:var(--sage)}
+    .download-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.42rem 1rem;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.75rem;font-weight:500;letter-spacing:.05em;cursor:pointer;border:none;background:linear-gradient(135deg,var(--sage),var(--deep));color:#fff;box-shadow:0 2px 10px rgba(61,107,82,.25);transition:transform .2s,box-shadow .2s,opacity .2s;white-space:nowrap;flex-shrink:0}
+    .download-btn:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(61,107,82,.35)}
+    .download-btn.loading{opacity:.6;pointer-events:none}
+    .modal-close{width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(122,171,138,.4);background:rgba(240,250,244,.8);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;color:var(--soft);transition:background .2s,transform .2s;flex-shrink:0}
+    .modal-close:hover{background:rgba(168,213,181,.45);transform:rotate(90deg)}
+    .modal-page-indicator{display:flex;align-items:center;justify-content:center;gap:.55rem;padding:.6rem 1rem .2rem;flex-shrink:0}
+    .page-dot{width:7px;height:7px;border-radius:50%;background:rgba(122,171,138,.28);transition:background .3s,transform .3s;cursor:pointer}
+    .page-dot.active{background:var(--sage);transform:scale(1.45)}
+    .modal-content{overflow-y:auto;padding:2.5rem 3rem 2rem;flex:1;position:relative;scroll-behavior:smooth}
+    .modal-content::-webkit-scrollbar{width:4px}
+    .modal-content::-webkit-scrollbar-track{background:transparent}
+    .modal-content::-webkit-scrollbar-thumb{background:rgba(122,171,138,.38);border-radius:4px}
+    .modal-content::before{content:'';position:absolute;top:0;left:3.4rem;width:1px;height:100%;background:rgba(168,213,181,.32);pointer-events:none}
+    .letter-page{display:none;animation:fadeUp .35s ease both}
+    .letter-page.active{display:block}
+    .letter-date-written{font-family:'Dancing Script',cursive;font-size:.95rem;color:var(--soft);text-align:right;margin-bottom:2rem}
+    .letter-greeting{font-family:'Dancing Script',cursive;font-size:2rem;color:var(--deep);margin-bottom:1.4rem}
+    .letter-body{font-family:'Cormorant Garamond',serif;font-size:1.12rem;line-height:2;color:#3a5442}
+    .letter-body p{margin-bottom:1.3rem}
+    .letter-body .hl{font-style:italic;color:var(--sage)}
+    .letter-ribbon{display:flex;align-items:center;gap:.8rem;margin:1.8rem 0 1.4rem}
+    .letter-ribbon::before,.letter-ribbon::after{content:'';flex:1;height:1px;background:rgba(122,171,138,.25)}
+    .letter-ribbon span{font-size:1rem}
+    .letter-sign{font-family:'Dancing Script',cursive;font-size:1.7rem;color:var(--deep);text-align:right;margin-top:1.8rem}
+    .letter-sign small{display:block;font-family:'Nunito',sans-serif;font-size:.72rem;color:var(--soft);font-weight:300;letter-spacing:.08em}
+    .page-continues{text-align:center;margin-top:2rem;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:rgba(107,145,120,.55)}
+    .pdf-page-wrap{text-align:center;margin-bottom:1rem}
+    .pdf-page-wrap img{max-width:100%;border-radius:8px;box-shadow:0 4px 20px rgba(61,107,82,.1)}
+    .pdf-loading{text-align:center;padding:4rem 0;color:var(--soft);font-style:italic;font-family:'Cormorant Garamond',serif;font-size:1.1rem}
+    .modal-nav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem 1.1rem;border-top:1px solid rgba(122,171,138,.15);background:rgba(240,250,244,.5);flex-shrink:0;gap:.8rem}
+    .modal-nav-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.4rem;border-radius:50px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:500;letter-spacing:.05em;cursor:pointer;border:none;transition:transform .2s,opacity .2s,box-shadow .2s}
+    .modal-nav-btn:hover:not(:disabled){transform:translateY(-2px)}
+    .modal-nav-btn:disabled{opacity:.28;cursor:default;transform:none}
+    .modal-nav-btn.prev{background:rgba(255,255,255,.85);color:var(--deep);border:1.5px solid rgba(122,171,138,.38)}
+    .modal-nav-btn.next{background:linear-gradient(135deg,var(--sage),var(--deep));color:#fff;box-shadow:0 3px 14px rgba(61,107,82,.25)}
+    .modal-page-count{font-size:.78rem;color:var(--soft);letter-spacing:.06em;white-space:nowrap}
+    footer{position:relative;z-index:1;text-align:center;padding:2.5rem 2rem;border-top:1px solid rgba(122,171,138,.15);font-size:.8rem;color:var(--soft)}
+    .heart-beat{display:inline-block;color:var(--sage);animation:heartbeat 1.4s ease-in-out infinite}
+    @keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.3)}28%{transform:scale(1)}42%{transform:scale(1.2)}70%{transform:scale(1)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:600px){.envelope{width:220px;height:148px}.modal-content{padding:2rem 1.5rem}.modal-content::before{left:2rem}}
+  </style>
+</head>
+<body>
+<div class="bg-canvas" id="bgCanvas"></div>
+<nav>
+  <a href="../../index.html">Home</a>
+  <span class="nav-heart">✿</span>
+  <a href="letter.html" class="active">Letters</a>
+  <span class="nav-heart">✿</span>
+  <a href="../../index.html">Quotes</a>
+</nav>
+<div class="hero">
+  <div class="page-tag">✦ written with love ✦</div>
+  <h1 class="page-title">Letters <em>for you</em></h1>
+  <p class="page-sub">Every word here belongs only to you.</p>
+</div>
+<div class="filter-bar" id="filterBar"></div>
+<div class="envelope-grid">
+  <div class="env-card" data-category="anniversary" data-id="letter1" onclick="openModal('letter1')">
+    <div class="envelope">
+      <div class="env-body"></div><div class="env-flap"></div>
+      <div class="env-seal">🌿</div>
+      <div class="env-lines"><div class="env-line"></div><div class="env-line"></div><div class="env-line"></div></div>
+      <div class="env-date-label">February 10, 2026</div>
+    </div>
+    <div class="env-title">1st Month</div>
+    <div class="env-subtitle">Monthsary Letter · 1 page</div>
+    <div class="env-pages-badge" id="badge-letter1">📄 1 page</div>
+  </div>
+  <div class="env-card" data-category="valentine" data-id="letter2" onclick="openModal('letter2')">
+    <div class="envelope">
+      <div class="env-body"></div><div class="env-flap"></div>
+      <div class="env-seal">🌿</div>
+      <div class="env-lines"><div class="env-line"></div><div class="env-line"></div><div class="env-line"></div></div>
+      <div class="env-date-label">March 10, 2026</div>
+    </div>
+    <div class="env-title">2nd Month</div>
+    <div class="env-subtitle">Monthsary Letter · 2 pages</div>
+    <div class="env-pages-badge" id="badge-letter2">📄 2 pages</div>
+  </div>
+  <!-- <div class="env-card" data-category="milestone" data-id="letter3" onclick="openModal('letter3')">
+    <div class="envelope">
+      <div class="env-body"></div><div class="env-flap"></div>
+      <div class="env-seal">🌸</div>
+      <div class="env-lines"><div class="env-line"></div><div class="env-line"></div><div class="env-line"></div></div>
+      <div class="env-date-label">March 10, 2026</div>
+    </div>
+    <div class="env-title">Two Months</div>
+    <div class="env-subtitle">Milestone · 3 pages</div>
+    <div class="env-pages-badge" id="badge-letter3">📄 3 pages</div>
+  </div> -->
+  <!-- <div class="env-card" data-category="other" data-id="letter4" onclick="openModal('letter4')">
+    <div class="envelope">
+      <div class="env-body"></div><div class="env-flap"></div>
+      <div class="env-seal">✨</div>
+      <div class="env-lines"><div class="env-line"></div><div class="env-line"></div><div class="env-line"></div></div>
+      <div class="env-date-label">Coming soon…</div>
+    </div>
+    <div class="env-title">A New Letter</div>
+    <div class="env-subtitle">Your next words · ?</div>
+    <div class="env-pages-badge" id="badge-letter4">📄 coming soon</div>
+  </div> -->
+</div>
+<footer>Made with <span class="heart-beat">♥</span> just for you &nbsp;·&nbsp; since January 10, 2026</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-topbar">
+      <div class="modal-letter-title" id="modalTitle"></div>
+      <button class="download-btn" id="downloadBtn" onclick="downloadPDF()">⬇ Download PDF</button>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-page-indicator" id="pageDots"></div>
+    <div class="modal-content" id="modalContent"></div>
+    <div class="modal-nav">
+      <button class="modal-nav-btn prev" id="prevBtn" onclick="changePage(-1)">← Prev</button>
+      <span class="modal-page-count" id="pageCount"></span>
+      <button class="modal-nav-btn next" id="nextBtn" onclick="changePage(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================
+   ✏️  EDIT YOUR LETTERS HERE
+   ─────────────────────────────────────────────────────
+   Each letter has:
+     title     — shown in modal header
+     date      — shown top-right of the letter & on envelope
+     greeting  — opening line e.g. "My dearest,"
+     sign      — sign-off e.g. "Yours, always 💚"
+     signDate  — small text under sign-off
+     pages     — array of pages.
+                 Each page = array of paragraph strings.
+                 Just write plain text — no HTML needed!
+
+   TO USE A PDF:
+     Drag & drop a PDF onto any envelope,
+     OR right-click the envelope → choose file.
+     Each A4 page in the PDF becomes one letter page.
+     The original text below is kept as fallback.
+
+   TO ADD MORE LETTERS:
+     1. Add a new entry below (e.g. letter5: { ... })
+     2. Copy an envelope card in the HTML and update
+        data-id and onclick to match (e.g. 'letter5')
+===================================================== */
+const letters = {
+
+  letter1: {
+    title:    'The First One — <em>January 10, 2026</em>',
+    date:     'January 10, 2026',
+    greeting: 'My dearest,',
+    sign:     'Yours, always 💚',
+    signDate: 'Written with love · January 10, 2026',
+    pages: [
+      [
+        "I've been trying to find the right words for a while now — the kind that could capture everything I feel when I think about you. I'm not sure words will ever be enough, but I want to try, because you deserve to know.",
+        "You walked into my life and made it softer. The world feels warmer, quieter, and far more beautiful because of you. Every morning I wake up grateful that I get to share this life with someone like you.",
+        "You may not realize it, but the little things you do — the way you laugh, the way you care, the way you look at me sometimes — those are the moments I tuck away in my heart and keep forever.",
+        "Thank you for every late night conversation, every patient moment, every time you chose me. I don't take any of it for granted.",
+        "I am not perfect, but I promise to always try. To grow with you, to laugh with you, to be someone worthy of the love you give so freely and so beautifully.",
+        "Here's to every day we've had, and every day still to come. I love you more than I know how to say — so I'll just keep showing you instead."
+      ]
+    ]
+  },
+
+  letter2: {
+    title:    "Valentine's Day — <em>February 14, 2026</em>",
+    date:     'February 14, 2026',
+    greeting: 'My love,',
+    sign:     'Forever yours 💌',
+    signDate: "Happy Valentine's Day · February 14, 2026",
+    pages: [
+      [
+        "Happy Valentine's Day. I know it's a day the whole world uses to say 'I love you,' but I want mine to feel different — because what I feel for you is different from anything I've ever known.",
+        "I think about the day we started talking. How I didn't know yet that you would become the person I'd look for in every room I walk into. You were a quiet beginning to the loudest feeling.",
+        "This past month has taught me so much about what love is supposed to feel like. It's supposed to feel safe. It's supposed to feel like home. And that's exactly what you are to me — home.",
+        "I love the version of myself that exists when I'm with you. I'm softer, slower to anger, quicker to laugh. You bring out the best of me without even trying.",
+        "I could write pages about your smile alone. The way it starts slow, then takes over your whole face. The way it reaches your eyes. I'd spend a lifetime just trying to be the reason for it."
+      ],
+      [
+        "I want to be the person who shows up for you — not just on good days, but on the hard ones too. The days when you're tired and the world feels heavy. I want to be the reason it feels a little lighter.",
+        "I don't need grand gestures or perfect moments. I just need ordinary days with you — mornings, meals, quiet evenings, and everything in between. The ordinary things become extraordinary when you're in them.",
+        "So here is my Valentine's promise to you: I will keep choosing you. I will keep showing up. I will keep falling in love with who you are — and who you're still becoming.",
+        "Thank you for being mine. Thank you for letting me be yours. I am the luckiest person in the world, and I know it."
+      ]
+    ]
+  },
+
+  letter3: {
+    title:    'Two Months — <em>March 10, 2026</em>',
+    date:     'March 10, 2026',
+    greeting: 'My darling,',
+    sign:     'All my love, always 💚',
+    signDate: 'Two months together · March 10, 2026',
+    pages: [
+      [
+        "Two months. Sixty days. One thousand, four hundred and forty hours of being yours. I sat down to count and couldn't stop smiling — because every single one of those moments has been a gift.",
+        "I want to spend this letter telling you what these two months have meant to me. Not the highlights — but the quiet, everyday things that no one else would notice. The things only I get to see.",
+        "I notice the way you pause before you answer. Like every question deserves real thought. Like you actually care about getting things right. That careful, gentle way you move through life — it's one of the things I love most about you.",
+        "I notice how you remember things I mentioned once, weeks ago. The way you hold onto the small details of my life as if they matter. They do matter — and so do you.",
+        "I've learned so much about you in two months. Your favorite things, your small habits, the topics that make your eyes light up. And every new thing I learn only makes me want to know more."
+      ],
+      [
+        "There are days when life gets heavy and I don't have to explain why — you just know. You sit with me in it. You don't try to fix everything or rush me past it. You just stay. And staying is everything.",
+        "I think about who I was before you, and who I'm becoming now. There's a gentleness growing in me that I didn't know I had. A patience. A willingness to be soft in places I used to keep guarded.",
+        "That's what you do. You make it feel safe to be real. To be imperfect. To be fully, completely myself — with no performance, no mask, no version of me edited for someone else's comfort.",
+        "You love me like I don't need to earn it. And I am learning — slowly, gratefully — to receive that love without questioning whether I deserve it.",
+        "Two months in, and I already can't imagine a future that doesn't have you in it. Not because I need you to complete me — but because life is simply better, more colorful, more alive with you beside me."
+      ],
+      [
+        "So here is what I want you to know, at two months and beyond: I am in this. Fully, willingly, happily in this. Not because it's always easy — but because you are worth every single effort.",
+        "I want to keep building something beautiful with you. Small moments piled into a big life. Adventures and quiet mornings. Hard conversations that bring us closer. Laughter over nothing at all.",
+        "I want to be the person you look back on and say — that one was real. That one truly loved me.",
+        "Thank you for two months of magic. For being patient with me, for being kind, for being you. I love you in a way that keeps growing — and I hope it never stops.",
+        "Here's to the next two months. And the next two years. And everything after that."
+      ]
+    ]
+  },
+
+  letter4: {
+    title:    'A New Letter — <em>coming soon</em>',
+    date:     'Coming soon…',
+    greeting: 'To be written,',
+    sign:     'Coming soon 🌿',
+    signDate: 'Stay tuned, my love',
+    pages: [
+      [
+        "This envelope is waiting for the next letter. Every feeling I haven't yet found words for, every moment still to come — they'll live here one day.",
+        "The story is still being written."
+      ]
+    ]
+  }
+
+};
+
+/* ══════════════════════════════════════════════
+   PDF STORE — in-memory cache this session
+   PDFs are loaded from: letters/letterX/letter.pdf
+   Just drop your PDF in the right folder on GitHub!
+══════════════════════════════════════════════ */
+const pdfStore = {};
+
+/* ── Try to load a PDF from the letters/letterX/ folder ── */
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+async function tryLoadPdfFromFolder(letterId) {
+  if (pdfStore[letterId]) return; // already loaded
+  const path = `letters/${letterId}/letter.pdf`;
+  try {
+    const res = await fetch(path, { method: 'HEAD' });
+    if (!res.ok) return; // no PDF in that folder yet
+    await renderPdfFromPath(letterId, path);
+  } catch(e) {
+    // fetch failed (local file:// or no PDF) — silently skip
+  }
+}
+
+async function renderPdfFromPath(letterId, path) {
+  try {
+    const res  = await fetch(path);
+    if (!res.ok) return;
+    const buf  = await res.arrayBuffer();
+    const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
+    const imgs = [];
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page     = await pdf.getPage(p);
+      const viewport = page.getViewport({ scale: 1.8 });
+      const canvas   = document.createElement('canvas');
+      canvas.width   = viewport.width;
+      canvas.height  = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      imgs.push(canvas.toDataURL('image/jpeg', 0.92));
+    }
+    pdfStore[letterId] = { images: imgs, name: path };
+    const badge = document.getElementById('badge-' + letterId);
+    if (badge) badge.textContent = `📎 ${imgs.length} page${imgs.length>1?'s':''} (PDF)`;
+  } catch(e) {
+    console.warn('Could not render PDF:', path, e);
+  }
+}
+
+/* Load PDFs from folders on startup */
+async function loadAllFolderPdfs() {
+  const ids = ['letter1','letter2','letter3','letter4'];
+  await Promise.all(ids.map(id => tryLoadPdfFromFolder(id)));
+}
+loadAllFolderPdfs();
+
+/* ── ALSO support manual drag & drop / right-click upload (for local testing) ── */
+async function handlePdfUpload(letterId, file) {
+  if (!file || file.type !== 'application/pdf') return;
+  openModal(letterId);
+  document.getElementById('modalContent').innerHTML =
+    '<div class="pdf-loading">Reading your PDF pages… 🌿</div>';
+  document.getElementById('pageDots').innerHTML = '';
+  document.getElementById('pageCount').textContent = '';
+
+  try {
+    const buf  = await file.arrayBuffer();
+    const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
+    const imgs = [];
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page     = await pdf.getPage(p);
+      const viewport = page.getViewport({ scale: 1.8 });
+      const canvas   = document.createElement('canvas');
+      canvas.width   = viewport.width;
+      canvas.height  = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      imgs.push(canvas.toDataURL('image/jpeg', 0.92));
+    }
+    pdfStore[letterId] = { images: imgs, name: file.name };
+    currentPage = 0;
+    renderModal();
+    const badge = document.getElementById('badge-' + letterId);
+    if (badge) badge.textContent = `📎 ${imgs.length} page${imgs.length>1?'s':''} (PDF)`;
+  } catch(err) {
+    document.getElementById('modalContent').innerHTML =
+      '<div class="pdf-loading">Could not read PDF. Please try a different file.</div>';
+  }
+}
+
+/* ── Modal state ── */
+let currentId = null, currentLetter = null, currentPage = 0;
+
+function openModal(id) {
+  currentId     = id;
+  currentLetter = letters[id];
+  currentPage   = 0;
+  // Try loading from folder if not yet loaded
+  tryLoadPdfFromFolder(id).then(() => renderModal());
+  document.getElementById('modalOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  // Show loading state immediately
+  document.getElementById('modalTitle').innerHTML = currentLetter.title;
+  document.getElementById('modalContent').innerHTML =
+    '<div class="pdf-loading">Opening… 🌿</div>';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function renderModal() {
+  const l     = currentLetter;
+  const pages = pdfStore[currentId] ? pdfStore[currentId].images : null;
+  const isPdf = !!pages;
+  const total = isPdf ? pages.length : l.pages.length;
+
+  document.getElementById('modalTitle').innerHTML = l.title;
+
+  // Show/hide replace button
+  const replaceBtn = document.getElementById('replacePdfBtn');
+  if (replaceBtn) replaceBtn.style.display = pdfStore[currentId] ? 'inline-flex' : 'none';
+
+  let html = '';
+  if (isPdf) {
+    pages.forEach((src, i) => {
+      html += `<div class="letter-page ${i===currentPage?'active':''}">
+        <div class="pdf-page-wrap"><img src="${src}" alt="Page ${i+1}"/></div>
+      </div>`;
+    });
+  } else {
+    l.pages.forEach((paras, i) => {
+      const isFirst = i === 0, isLast = i === l.pages.length - 1;
+      const label   = total > 1 ? `${l.date} — Page ${i+1} of ${total}` : l.date;
+      html += `<div class="letter-page ${i===currentPage?'active':''}">
+        <div class="letter-date-written">${label}</div>
+        ${isFirst ? `<div class="letter-greeting">${l.greeting}</div>` : ''}
+        <div class="letter-body">${paras.map(p=>`<p>${p}</p>`).join('')}
+          ${!isLast?'<div class="page-continues">— continued on the next page —</div>':''}
+        </div>
+        ${isLast ? `<div class="letter-sign">${l.sign}<small>${l.signDate}</small></div>` : ''}
+      </div>`;
+    });
+  }
+  document.getElementById('modalContent').innerHTML = html;
+
+  document.getElementById('pageDots').innerHTML = total > 1
+    ? Array.from({length:total},(_,i)=>`<div class="page-dot ${i===currentPage?'active':''}" onclick="goToPage(${i})"></div>`).join('')
+    : '';
+
+  document.getElementById('pageCount').textContent = total > 1 ? `Page ${currentPage+1} of ${total}` : '';
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  prevBtn.disabled = currentPage === 0;
+  nextBtn.disabled = currentPage === total - 1;
+  nextBtn.textContent = currentPage === total - 1 ? 'Last page ✓' : 'Next →';
+  document.getElementById('modalContent').scrollTop = 0;
+}
+
+function changePage(dir) {
+  const total = pdfStore[currentId] ? pdfStore[currentId].images.length : currentLetter.pages.length;
+  const next  = currentPage + dir;
+  if (next < 0 || next >= total) return;
+  currentPage = next;
+  renderModal();
+}
+function goToPage(i) { currentPage = i; renderModal(); }
+
+/* ── Download PDF ── */
+async function downloadPDF() {
+  const btn = document.getElementById('downloadBtn');
+  btn.classList.add('loading');
+  btn.textContent = '⏳ Preparing…';
+  try {
+    const { jsPDF } = window.jspdf;
+    if (pdfStore[currentId]) {
+      const imgs = pdfStore[currentId].images;
+      const doc  = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const W    = doc.internal.pageSize.getWidth();
+      const H    = doc.internal.pageSize.getHeight();
+      imgs.forEach((img, i) => { if(i>0) doc.addPage(); doc.addImage(img,'JPEG',0,0,W,H); });
+      doc.save((pdfStore[currentId].name || 'letter').replace(/.*\//,'') + '_copy.pdf');
+    } else {
+      const l   = currentLetter;
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
+      const ML=22, MR=22, MT=28, MB=24, TW=W-ML-MR;
+      l.pages.forEach((paras, pi) => {
+        if(pi>0) doc.addPage();
+        doc.setDrawColor(168,213,181); doc.setLineWidth(0.3);
+        doc.line(ML-6,MT,ML-6,H-MB);
+        doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(107,145,120);
+        const lbl = l.pages.length>1 ? `${l.date} — Page ${pi+1} of ${l.pages.length}` : l.date;
+        doc.text(lbl, W-MR, MT, {align:'right'});
+        let y = MT+10;
+        if(pi===0){ doc.setFont('helvetica','bolditalic'); doc.setFontSize(18); doc.setTextColor(61,107,82); doc.text(l.greeting, ML, y); y+=12; }
+        doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(58,84,66);
+        paras.forEach(para => {
+          const lines = doc.splitTextToSize(para, TW);
+          doc.text(lines, ML, y);
+          y += lines.length*6.2+4;
+        });
+        if(pi===l.pages.length-1){
+          y+=6; doc.setFont('helvetica','bolditalic'); doc.setFontSize(14); doc.setTextColor(61,107,82);
+          doc.text(l.sign, W-MR, y, {align:'right'}); y+=7;
+          doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(107,145,120);
+          doc.text(l.signDate, W-MR, y, {align:'right'});
+        }
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(168,213,181);
+        doc.text(`${pi+1} / ${l.pages.length}`, W/2, H-10, {align:'center'});
+      });
+      const fname = (l.date||'letter').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+      doc.save(fname+'.pdf');
+    }
+  } catch(e) { console.error(e); alert('Download failed, please try again.'); }
+  btn.classList.remove('loading');
+  btn.textContent = '⬇ Download PDF';
+}
+
+/* ── Filter: auto-built from envelope seals ── */
+function filterLetters(emoji, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.env-card').forEach(card => {
+    const seal = card.querySelector('.env-seal')?.textContent?.trim();
+    if (emoji === 'all' || seal === emoji) card.classList.remove('hidden');
+    else card.classList.add('hidden');
+  });
+}
+
+function buildFilterBar() {
+  const bar   = document.getElementById('filterBar');
+  const cards = [...document.querySelectorAll('.env-card')];
+
+  // Collect unique emojis in the order they appear
+  const seen   = new Set();
+  const emojis = [];
+  cards.forEach(card => {
+    const seal = card.querySelector('.env-seal')?.textContent?.trim();
+    if (seal && !seen.has(seal)) { seen.add(seal); emojis.push(seal); }
+  });
+
+  // "All" button
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn active';
+  allBtn.textContent = '✦ All Letters';
+  allBtn.onclick = () => filterLetters('all', allBtn);
+  bar.appendChild(allBtn);
+
+  // One button per unique emoji
+  emojis.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = emoji;
+    btn.onclick = () => filterLetters(emoji, btn);
+    bar.appendChild(btn);
+  });
+}
+
+buildFilterBar();
+
+/* ── Keyboard ── */
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape')     closeModal();
+  if(e.key==='ArrowRight') changePage(1);
+  if(e.key==='ArrowLeft')  changePage(-1);
+});
+
+/* PDF loaded from letters/letterX/letter.pdf folder on GitHub */
+
+/* ── Petals ── */
+const canvas = document.getElementById('bgCanvas');
+const colors = ['#7aab8a','#a8d5b5','#3d6b52','#c5e8d0','#5a9470'];
+for(let i=0;i<26;i++){
+  const p=document.createElement('div'); p.className='petal';
+  p.style.cssText=`left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};width:${8+Math.random()*10}px;height:${12+Math.random()*14}px;animation-duration:${12+Math.random()*18}s;animation-delay:-${Math.random()*22}s;border-radius:${Math.random()>.5?'50% 0 50% 0':'0 50% 0 50%'};`;
+  canvas.appendChild(p);
+}
+</script>

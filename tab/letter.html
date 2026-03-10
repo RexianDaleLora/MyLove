@@ -311,15 +311,24 @@ const pdfStore = {};
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+// ── PDF filenames: update this when you add new letters ──
+const pdfFiles = {
+  letter1: '1st_Monthsary.pdf',
+  letter2: '2nd_Monthsary.pdf',
+  // letter3: '3rd_Monthsary.pdf',
+};
+
 async function tryLoadPdfFromFolder(letterId) {
-  if (pdfStore[letterId]) return; // already loaded
-  const path = `letters/${letterId}/letter.pdf`;
+  if (pdfStore[letterId]) return; // already cached
+  const filename = pdfFiles[letterId];
+  if (!filename) return; // no PDF defined for this letter
+  const path = `letters/${letterId}/${filename}`;
   try {
     const res = await fetch(path, { method: 'HEAD' });
-    if (!res.ok) return; // no PDF in that folder yet
+    if (!res.ok) return;
     await renderPdfFromPath(letterId, path);
   } catch(e) {
-    // fetch failed (local file:// or no PDF) — silently skip
+    // silently skip if fetch fails (CORS on local / file not found)
   }
 }
 
@@ -354,38 +363,7 @@ async function loadAllFolderPdfs() {
 }
 loadAllFolderPdfs();
 
-/* ── ALSO support manual drag & drop / right-click upload (for local testing) ── */
-async function handlePdfUpload(letterId, file) {
-  if (!file || file.type !== 'application/pdf') return;
-  openModal(letterId);
-  document.getElementById('modalContent').innerHTML =
-    '<div class="pdf-loading">Reading your PDF pages… 🌿</div>';
-  document.getElementById('pageDots').innerHTML = '';
-  document.getElementById('pageCount').textContent = '';
 
-  try {
-    const buf  = await file.arrayBuffer();
-    const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
-    const imgs = [];
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page     = await pdf.getPage(p);
-      const viewport = page.getViewport({ scale: 1.8 });
-      const canvas   = document.createElement('canvas');
-      canvas.width   = viewport.width;
-      canvas.height  = viewport.height;
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-      imgs.push(canvas.toDataURL('image/jpeg', 0.92));
-    }
-    pdfStore[letterId] = { images: imgs, name: file.name };
-    currentPage = 0;
-    renderModal();
-    const badge = document.getElementById('badge-' + letterId);
-    if (badge) badge.textContent = `📎 ${imgs.length} page${imgs.length>1?'s':''} (PDF)`;
-  } catch(err) {
-    document.getElementById('modalContent').innerHTML =
-      '<div class="pdf-loading">Could not read PDF. Please try a different file.</div>';
-  }
-}
 
 /* ── Modal state ── */
 let currentId = null, currentLetter = null, currentPage = 0;

@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv='cache-control' content='no-cache'>
-  <meta http-equiv='expires' content='0'>
-  <meta http-equiv='pragma' content='no-cache'>
   <title>My Letters to You 💌</title>
+  <link rel="manifest" href="../../manifest.json"/>
+  <meta name="theme-color" content="#7aab8a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="Our World"/>
+  <link rel="apple-touch-icon" href="../../icons/icon-192.png"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Nunito:wght@300;400;500&family=Dancing+Script:wght@400;600&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -110,11 +113,11 @@
 <body>
 <div class="bg-canvas" id="bgCanvas"></div>
 <nav>
-  <a href="../index.html">Home</a>
+  <a href="../../index.html">Home</a>
   <span class="nav-heart">✿</span>
   <a href="letter.html" class="active">Letters</a>
   <span class="nav-heart">✿</span>
-  <a href="../index.html">Quotes</a>
+  <a href="../../index.html">Quotes</a>
 </nav>
 <div class="hero">
   <div class="page-tag">✦ written with love ✦</div>
@@ -314,24 +317,15 @@ const pdfStore = {};
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ── PDF filenames: update this when you add new letters ──
-const pdfFiles = {
-  letter1: '1st_Monthsary.pdf',
-  letter2: '2nd_Monthsary.pdf',
-  // letter3: '3rd_Monthsary.pdf',
-};
-
 async function tryLoadPdfFromFolder(letterId) {
-  if (pdfStore[letterId]) return; // already cached
-  const filename = pdfFiles[letterId];
-  if (!filename) return; // no PDF defined for this letter
-  const path = `letters/${letterId}/${filename}`;
+  if (pdfStore[letterId]) return; // already loaded
+  const path = `letters/${letterId}/letter.pdf`;
   try {
     const res = await fetch(path, { method: 'HEAD' });
-    if (!res.ok) return;
+    if (!res.ok) return; // no PDF in that folder yet
     await renderPdfFromPath(letterId, path);
   } catch(e) {
-    // silently skip if fetch fails (CORS on local / file not found)
+    // fetch failed (local file:// or no PDF) — silently skip
   }
 }
 
@@ -366,7 +360,38 @@ async function loadAllFolderPdfs() {
 }
 loadAllFolderPdfs();
 
+/* ── ALSO support manual drag & drop / right-click upload (for local testing) ── */
+async function handlePdfUpload(letterId, file) {
+  if (!file || file.type !== 'application/pdf') return;
+  openModal(letterId);
+  document.getElementById('modalContent').innerHTML =
+    '<div class="pdf-loading">Reading your PDF pages… 🌿</div>';
+  document.getElementById('pageDots').innerHTML = '';
+  document.getElementById('pageCount').textContent = '';
 
+  try {
+    const buf  = await file.arrayBuffer();
+    const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
+    const imgs = [];
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page     = await pdf.getPage(p);
+      const viewport = page.getViewport({ scale: 1.8 });
+      const canvas   = document.createElement('canvas');
+      canvas.width   = viewport.width;
+      canvas.height  = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      imgs.push(canvas.toDataURL('image/jpeg', 0.92));
+    }
+    pdfStore[letterId] = { images: imgs, name: file.name };
+    currentPage = 0;
+    renderModal();
+    const badge = document.getElementById('badge-' + letterId);
+    if (badge) badge.textContent = `📎 ${imgs.length} page${imgs.length>1?'s':''} (PDF)`;
+  } catch(err) {
+    document.getElementById('modalContent').innerHTML =
+      '<div class="pdf-loading">Could not read PDF. Please try a different file.</div>';
+  }
+}
 
 /* ── Modal state ── */
 let currentId = null, currentLetter = null, currentPage = 0;

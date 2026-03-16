@@ -8,11 +8,11 @@
 const CACHE = 'our-world-v1';
 
 const PRECACHE = [
-  '/',
-  '/index.html',
-  '/tab/letter.html',
-  '/tab/quotes.html',
-  '/manifest.json',
+  '/MyLove/',
+  '/MyLove/index.html',
+  '/MyLove/tab/letter.html',
+  '/MyLove/tab/quotes.html',
+  '/MyLove/manifest.json',
 ];
 
 /* ── Install: pre-cache the main pages ── */

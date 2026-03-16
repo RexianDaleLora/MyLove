@@ -2,7 +2,7 @@
   "name": "Our Little World 💚",
   "short_name": "Our World",
   "description": "A little world made just for you.",
-  "start_url": "/",
+  "start_url": "/MyLove/",
   "display": "standalone",
   "background_color": "#f0faf4",
   "theme_color": "#7aab8a",
